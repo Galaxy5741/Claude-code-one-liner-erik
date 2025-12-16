@@ -20,20 +20,21 @@ The script automatically detects your OS and uses `apt-get` on Debian/Ubuntu sys
 
 This script automatically installs and configures:
 
-1. **npm** - Node Package Manager (if not already installed)
-2. **Claude Code** - Anthropic's official CLI via npm
-3. **System Prompt** - Custom "Sudo" British Intelligence operative personality in `~/.claude/CLAUDE.md`
-4. **Memory MCP Server** - Persistent memory storage via MCP protocol
-5. **Specialized Agents** (Sonnet 4.5):
+1. **nvm (Node Version Manager)** - Installs if Node.js < 18.0.0 or not present
+2. **Node.js 18 LTS** - Via nvm (if needed)
+3. **Claude Code** - Anthropic's official CLI via npm
+4. **System Prompt** - Custom "Sudo" British Intelligence operative personality in `~/.claude/CLAUDE.md`
+5. **Memory MCP Server** - Persistent memory storage via MCP protocol
+6. **Specialized Agents** (Sonnet 4.5):
    - `senior-code-reviewer` - Comprehensive code review agent
    - `ui-engineer` - Expert UI/frontend development agent
 
 ## System Requirements
 
-- **Linux**: Debian/Ubuntu (apt-get), RHEL/CentOS (yum), or Arch (pacman)
-- **macOS**: Requires Homebrew
-- Internet connection
-- sudo access (for npm installation if needed)
+- **Linux** or **macOS**
+- **Internet connection**
+- **curl** (usually pre-installed)
+- **No sudo required** - Uses nvm for user-level Node.js installation
 
 ## Manual Installation
 
