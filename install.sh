@@ -82,29 +82,45 @@ curl -sL "$REPO_URL/ui-engineer.md" -o "$AGENTS_DIR/ui-engineer.md"
 echo "⚙️  Configuring MCP server..."
 CONFIG_FILE="$CLAUDE_DIR/config.json"
 
+# Backup existing config if it exists
 if [ -f "$CONFIG_FILE" ]; then
-    # Backup existing config
-    cp "$CONFIG_FILE" "$CONFIG_FILE.backup"
-    # Merge MCP server config
-    cat "$CONFIG_FILE" | jq '.mcpServers.memory = {
-        "command": "node",
-        "args": ["'$MCP_DIR'/memory/mcp-client-memory.js"]
-    }' > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
-else
-    # Create new config
-    cat > "$CONFIG_FILE" << 'EOF'
-{
-  "mcpServers": {
-    "memory": {
-      "command": "node",
-      "args": ["$MCP_DIR/memory/mcp-client-memory.js"]
-    }
-  }
-}
-EOF
-    # Replace $MCP_DIR with actual path
-    sed -i.bak "s|\$MCP_DIR|$MCP_DIR|g" "$CONFIG_FILE" && rm "$CONFIG_FILE.bak"
+    cp "$CONFIG_FILE" "$CONFIG_FILE.backup.$(date +%s)"
+    echo "  (Backed up existing config)"
 fi
+
+# Create/overwrite config with MCP server using Python for JSON handling
+python3 << PYTHON_SCRIPT
+import json
+import os
+
+config_file = "$CONFIG_FILE"
+mcp_dir = "$MCP_DIR"
+
+# Read existing config or start with empty dict
+config = {}
+if os.path.exists(config_file):
+    try:
+        with open(config_file, 'r') as f:
+            config = json.load(f)
+    except:
+        config = {}
+
+# Ensure mcpServers key exists
+if 'mcpServers' not in config:
+    config['mcpServers'] = {}
+
+# Add memory server
+config['mcpServers']['memory'] = {
+    "command": "node",
+    "args": [f"{mcp_dir}/memory/mcp-client-memory.js"]
+}
+
+# Write config
+with open(config_file, 'w') as f:
+    json.dump(config, f, indent=2)
+
+print(f"✓ MCP server configured in {config_file}")
+PYTHON_SCRIPT
 
 echo "✅ Installation complete!"
 echo ""
