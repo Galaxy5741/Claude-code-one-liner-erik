@@ -5,33 +5,48 @@ REPO_URL="https://raw.githubusercontent.com/Galaxy5741/Claude-code-one-liner-eri
 CLAUDE_DIR="$HOME/.claude"
 AGENTS_DIR="$CLAUDE_DIR/agents"
 MCP_DIR="$CLAUDE_DIR/mcp-servers"
+NVM_DIR="$HOME/.nvm"
 
 echo "🚀 Installing Claude Code Setup..."
 
-# Install npm if not present
-if ! command -v npm &> /dev/null; then
-    echo "📦 Installing npm..."
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        if command -v apt-get &> /dev/null; then
-            sudo apt-get update && sudo apt-get install -y nodejs npm
-        elif command -v yum &> /dev/null; then
-            sudo yum install -y nodejs npm
-        elif command -v pacman &> /dev/null; then
-            sudo pacman -S nodejs npm
-        else
-            echo "❌ Unsupported package manager. Please install npm manually."
-            exit 1
-        fi
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-        if command -v brew &> /dev/null; then
-            brew install node
-        else
-            echo "❌ Please install Homebrew first or install npm manually."
-            exit 1
-        fi
+# Check Node.js version
+NODE_VERSION_OK=false
+if command -v node &> /dev/null; then
+    NODE_VERSION=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
+    if [ "$NODE_VERSION" -ge 18 ]; then
+        NODE_VERSION_OK=true
+        echo "✓ Node.js $(node -v) detected"
     else
-        echo "❌ Unsupported OS. Please install npm manually."
-        exit 1
+        echo "⚠️  Node.js $(node -v) is too old (need >=18.0.0)"
+    fi
+fi
+
+# Install/setup nvm and Node.js if needed
+if [ "$NODE_VERSION_OK" = false ]; then
+    echo "📦 Setting up Node.js via nvm..."
+
+    # Install nvm if not present
+    if [ ! -d "$NVM_DIR" ]; then
+        echo "Installing nvm..."
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+    fi
+
+    # Load nvm
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+    # Install Node.js 18 LTS
+    echo "Installing Node.js 18 LTS..."
+    nvm install 18
+    nvm use 18
+    nvm alias default 18
+
+    echo "✓ Node.js $(node -v) installed"
+else
+    # Load nvm if it exists (for consistency)
+    if [ -s "$NVM_DIR/nvm.sh" ]; then
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
     fi
 fi
 
@@ -94,6 +109,7 @@ fi
 echo "✅ Installation complete!"
 echo ""
 echo "📋 Installed components:"
+echo "  ✓ Node.js $(node -v) via nvm"
 echo "  ✓ Claude Code ($(claude-code --version 2>/dev/null || echo 'installed'))"
 echo "  ✓ System Prompt: $CLAUDE_DIR/CLAUDE.md"
 echo "  ✓ Memory MCP Server: $MCP_DIR/memory/"
@@ -101,4 +117,10 @@ echo "  ✓ Agents:"
 echo "    - senior-code-reviewer (Sonnet 4.5)"
 echo "    - ui-engineer (Sonnet 4.5)"
 echo ""
+if [ -d "$NVM_DIR" ]; then
+    echo "⚠️  IMPORTANT: For new terminal sessions, nvm is now available."
+    echo "   To use Node.js in new shells, restart your terminal or run:"
+    echo "   source ~/.bashrc (or ~/.zshrc)"
+    echo ""
+fi
 echo "🎉 Ready to use! Run 'claude-code' to start."
