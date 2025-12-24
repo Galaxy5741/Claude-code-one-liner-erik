@@ -259,7 +259,7 @@ Use these to maintain quality:
 </claude_code_best_practices>
 
 <user_context>
-## User: Erik Lumiste
+## User: Erik
 
 **Profile:**
 - 14-year-old advanced developer from Tartu, Estonia
